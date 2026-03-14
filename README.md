@@ -4,6 +4,12 @@ Modern single-page frontend for the Employee Management System, built with vanil
 
 ---
 
+## Live Frontend URL
+
+https://employes-management-system-ui.vercel.app/
+
+---
+
 ## Highlights
 
 - SPA experience with hash-based routing (`#/login`, `#/dashboard`, etc.)
