@@ -42,8 +42,8 @@ html {
 }
 
 body {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: subpixel-antialiased;
+    -moz-osx-font-smoothing: auto;
 }
 
 /* Ensure proper touch targets on mobile (min 44x44px) */
@@ -156,19 +156,186 @@ body {
 /* Optimize sidebar drawer for touch devices */
 @media (max-width: 1024px) {
     #app-sidebar {
-        box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
+        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        width: 80vw !important;
-        max-width: 280px;
+        width: 288px !important; /* w-72 = 18rem = 288px */
+        min-width: 288px;
+        max-height: 100vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Smooth scrolling */
+    #app-sidebar {
+        scroll-behavior: smooth;
     }
 
     #sidebar-overlay {
-        transition: opacity 0.3s ease;
-        pointer-events: auto !important;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+        pointer-events: none;
+        visibility: hidden;
+        opacity: 0;
+        background-color: rgba(0, 0, 0, 0.4);
     }
 
+    #sidebar-overlay:not(.hidden) {
+        pointer-events: auto;
+        visibility: visible;
+        opacity: 1;
+    }
+
+    /* Ensure overlay is hidden when it has the hidden class */
     #sidebar-overlay.hidden {
-        pointer-events: none !important;
+        pointer-events: none;
+        visibility: hidden;
+        opacity: 0;
+    }
+
+    /* Navigation links hover/active states for mobile */
+    #app-sidebar a {
+        -webkit-tap-highlight-color: transparent;
+        transition: all 0.2s ease;
+    }
+
+    #app-sidebar a:active {
+        transform: scale(0.98);
+    }
+}
+
+/* Desktop sidebar width */
+@media (min-width: 1025px) {
+    #app-sidebar {
+        width: 320px !important; /* w-80 = 20rem = 320px */
+        min-width: 320px;
+        max-height: 100vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* Tablet sidebar improvements (480px - 768px) */
+@media (min-width: 480px) and (max-width: 768px) {
+    #app-sidebar {
+        width: 288px !important;
+        min-width: 288px;
+    }
+
+    #app-sidebar nav {
+        padding: 20px 8px !important;
+    }
+
+    #app-sidebar nav a {
+        padding: 12px 16px !important;
+        font-size: 14px !important;
+    }
+}
+
+/* Small phone improvements (< 480px) */
+@media (max-width: 480px) {
+    #app-sidebar {
+        width: 280px !important;
+        min-width: 280px;
+    }
+
+    #app-sidebar nav a {
+        padding: 12px 14px !important;
+        margin: 0 10px !important;
+        font-size: 14px !important;
+        min-height: 44px !important;
+    }
+
+    #app-sidebar nav a span:first-child {
+        font-size: 18px !important;
+    }
+}
+
+/* Mobile-specific sidebar improvements */
+@media (max-width: 640px) {
+    #app-sidebar {
+        width: 288px !important;
+        min-width: 288px;
+        max-width: 90vw !important;
+    }
+
+    #app-sidebar .flex.items-center {
+        gap: 16px !important;
+    }
+
+    /* Enhanced logo section for mobile */
+    #app-sidebar > div:first-child {
+        padding: 24px 20px !important;
+        gap: 16px !important;
+    }
+
+    #app-sidebar > div:first-child > div:first-child {
+        width: 40px !important;
+        height: 40px !important;
+        font-size: 18px !important;
+    }
+
+    #app-sidebar > div:first-child > div:last-child > div:first-child {
+        font-size: 18px !important;
+        font-weight: 700 !important;
+    }
+
+    #app-sidebar > div:first-child > div:last-child > div:last-child {
+        font-size: 12px !important;
+    }
+
+    /* Navigation items spacing on mobile */
+    #app-sidebar nav {
+        padding: 24px 8px !important;
+        gap: 12px !important;
+    }
+
+    #app-sidebar nav a {
+        padding: 14px 16px !important;
+        margin: 0 12px !important;
+        font-size: 15px !important;
+        border-radius: 12px !important;
+        gap: 14px !important;
+        min-height: 48px !important;
+    }
+
+    #app-sidebar nav a span:first-child {
+        font-size: 20px !important;
+    }
+
+    #app-sidebar nav a span:last-child {
+        font-size: 15px !important;
+        font-weight: 500 !important;
+    }
+
+    /* User info section styling for mobile */
+    #app-sidebar > div:last-child {
+        padding: 18px 20px !important;
+        background-color: rgba(15, 23, 42, 0.5) !important;
+        border-top: 2px solid rgba(71, 85, 105, 0.5) !important;
+    }
+
+    #app-sidebar > div:last-child .flex {
+        gap: 12px !important;
+    }
+
+    #app-sidebar > div:last-child > div > div:first-child {
+        width: 40px !important;
+        height: 40px !important;
+        font-size: 14px !important;
+    }
+
+    #app-sidebar > div:last-child > div > div:last-child > div:first-child {
+        font-size: 14px !important;
+        font-weight: 600 !important;
+    }
+
+    #app-sidebar > div:last-child > div > div:last-child > div:last-child {
+        font-size: 12px !important;
+        font-weight: 500 !important;
+    }
+
+    /* Smooth scrolling for nav items */
+    #app-sidebar nav {
+        scroll-behavior: smooth;
     }
 }
 
@@ -353,15 +520,51 @@ html {
     }
 }
 
+/* ===== CRITICAL FIX: BLUR/FADE ISSUE ON MOBILE ===== */
+
+/* Ensure proper rendering on all devices */
+#app {
+    pointer-events: auto;
+}
+
+/* Fix rendering performance */
+html,
+body {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    will-change: transform;
+}
+
+/* Ensure text is always visible and sharp */
+@media (max-width: 640px) {
+    body,
+    main,
+    header {
+        background-color: #f9fafb !important;
+    }
+
+    .bg-white {
+        background-color: rgb(255, 255, 255) !important;
+    }
+
+    .bg-gray-50 {
+        background-color: #f9fafb !important;
+    }
+
+    .text-gray-800,
+    .text-gray-700,
+    .text-gray-900 {
+        color: #1f2937 !important;
+    }
+}
+
 /* FIX: Ensure all interactive elements are clickable */
 button,
 a,
 input,
 textarea,
-select,
-[onclick],
-[role="button"] {
-    pointer-events: auto !important;
+select {
+    pointer-events: auto;
     cursor: pointer;
 }
 
@@ -370,21 +573,10 @@ body {
     pointer-events: auto;
 }
 
-body > * {
-    pointer-events: auto;
-}
-
-#app,
-#app > * {
-    pointer-events: auto;
-}
-
 /* Prevent zoom blur on mobile - use user-scalable carefully */
 @media (max-width: 640px) {
     * {
-        -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
-        -webkit-user-select: none;
-        user-select: none;
+        -webkit-tap-highlight-color: transparent;
     }
 
     button,
