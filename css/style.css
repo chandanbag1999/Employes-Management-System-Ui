@@ -34,6 +34,36 @@
     color: #6366f1;
 }
 
+/* ===== DESKTOP LAYOUT FIX ===== */
+
+/* Desktop sidebar (lg = 1024px+) */
+@media (min-width: 1024px) {
+    #app-sidebar {
+        width: 320px !important; /* w-80 = 20rem */
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        z-index: 50;
+    }
+    
+    /* Ensure topbar accounts for sidebar width */
+    header {
+        left: 320px !important;
+        right: 0;
+    }
+    
+    /* Ensure content area has proper margin */
+    .flex-1.lg\:ml-80 {
+        margin-left: 320px !important;
+    }
+    
+    /* Main content padding */
+    main {
+        padding-top: 80px !important;
+    }
+}
+
 /* ===== MOBILE RESPONSIVENESS ENHANCEMENTS ===== */
 
 /* Prevent layout shift and zoom on mobile */
@@ -44,6 +74,11 @@ html {
 body {
     -webkit-font-smoothing: subpixel-antialiased;
     -moz-osx-font-smoothing: auto;
+}
+
+/* Universal flex container cleanup */
+.flex {
+    gap: inherit;
 }
 
 /* Ensure proper touch targets on mobile (min 44x44px) */
@@ -361,6 +396,19 @@ body {
     .mb-3 { margin-bottom: 10px !important; }
     .mb-4 { margin-bottom: 12px !important; }
     .mb-6 { margin-bottom: 16px !important; }
+}
+
+/* Desktop content area alignment */
+@media (min-width: 1024px) {
+    main {
+        margin-left: 0 !important;
+        padding-top: 80px !important;
+    }
+    
+    /* Hide sidebar overlay on desktop */
+    #sidebar-overlay {
+        display: none !important;
+    }
 }
 
 /* Optimize stats cards for mobile */

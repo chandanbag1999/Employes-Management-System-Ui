@@ -8,7 +8,7 @@ function renderTopbar(pageTitle) {
 
     return `
         <header class="h-16 bg-white border-b border-gray-200 flex items-center 
-                       justify-between px-3 sm:px-4 md:px-6 fixed top-0 right-0 left-0 lg:left-64 z-30">
+                       justify-between px-3 sm:px-4 md:px-6 fixed top-0 right-0 left-0 lg:left-80 z-30">
             
             <!-- Left: menu + page title -->
             <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">

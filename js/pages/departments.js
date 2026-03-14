@@ -8,7 +8,7 @@ async function renderDepartmentsPage() {
         document.getElementById('app').innerHTML = `
             <div class="flex min-h-screen bg-gray-50">
                 ${renderSidebar('departments')}
-                <div class="flex-1 lg:ml-64">
+                <div class="flex-1 lg:ml-80">
                     ${renderTopbar('Departments')}
                     <main class="pt-20 px-3 sm:px-4 md:px-6 pb-6 animate-fade-in">
 
