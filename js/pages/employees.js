@@ -13,36 +13,36 @@ async function renderEmployeesPage() {
         document.getElementById('app').innerHTML = `
             <div class="flex min-h-screen bg-gray-50">
                 ${renderSidebar('employees')}
-                <div class="flex-1 ml-64">
+                <div class="flex-1 lg:ml-64">
                     ${renderTopbar('Employees')}
-                    <main class="pt-20 px-6 pb-6 animate-fade-in">
+                    <main class="pt-20 px-3 sm:px-4 md:px-6 pb-6 animate-fade-in">
 
                         <!-- Page Header: Title + Add Button -->
-                        <div class="flex items-center justify-between mb-6">
-                            <div>
-                                <h2 class="text-xl font-bold text-gray-800">All Employees</h2>
-                                <p class="text-sm text-gray-500">${employees.length} total employees</p>
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
+                            <div class="min-w-0">
+                                <h2 class="text-xl sm:text-2xl font-bold text-gray-800">All Employees</h2>
+                                <p class="text-xs sm:text-sm text-gray-500 mt-1">${employees.length} total employees</p>
                             </div>
                             ${isAdmin() ? `
                                 <button onclick="openAddEmployeeModal()"
-                                        class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 
+                                        class="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 
                                                text-white text-sm font-medium px-4 py-2.5 rounded-xl 
-                                               transition-colors">
-                                    <span>+</span> Add Employee
+                                               w-full sm:w-auto transition-colors flex-shrink-0">
+                                    <span>+</span> <span>Add Employee</span>
                                 </button>` : ''}
                         </div>
 
                         <!-- Search Bar -->
-                        <div class="mb-4">
+                        <div class="mb-4 flex flex-col sm:flex-row gap-2">
                             <input type="text" id="employee-search"
                                    placeholder="Search by name, email, or position..."
                                    oninput="filterEmployees(this.value)"
-                                   class="w-full max-w-sm px-4 py-2.5 border border-gray-300 rounded-xl 
-                                          text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                   class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-xl 
+                                          text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
                         </div>
 
                         <!-- Table Container -->
-                        <div id="employee-table-container" class="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
+                        <div id="employee-table-container" class="bg-white rounded-2xl border border-gray-200 shadow-sm p-3 sm:p-4">
                             ${renderDataTable({
                                 columns: [
                                     { key: 'firstName',      label: 'First Name' },
@@ -114,7 +114,7 @@ function buildEmployeeFormHTML(emp = null) {
     return `
         <form id="employee-form" class="space-y-4">
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
                     <input name="firstName" required minlength="2" maxlength="50"
@@ -153,7 +153,7 @@ function buildEmployeeFormHTML(emp = null) {
                               focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Salary (₹) *</label>
                     <input type="number" name="salary" required min="1" value="${emp?.salary || ''}"
@@ -281,6 +281,9 @@ function confirmDeleteEmployee(emp) {
         }
     });
 };
+
+
+
 
 
 

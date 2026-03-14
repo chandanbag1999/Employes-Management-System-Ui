@@ -8,36 +8,36 @@ async function renderDepartmentsPage() {
         document.getElementById('app').innerHTML = `
             <div class="flex min-h-screen bg-gray-50">
                 ${renderSidebar('departments')}
-                <div class="flex-1 ml-64">
+                <div class="flex-1 lg:ml-64">
                     ${renderTopbar('Departments')}
-                    <main class="pt-20 px-6 pb-6 animate-fade-in">
+                    <main class="pt-20 px-3 sm:px-4 md:px-6 pb-6 animate-fade-in">
 
                         <!-- Header -->
-                        <div class="flex items-center justify-between mb-6">
-                            <div>
-                                <h2 class="text-xl font-bold text-gray-800">All Departments</h2>
-                                <p class="text-sm text-gray-500">${departments.length} total departments</p>
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
+                            <div class="min-w-0">
+                                <h2 class="text-xl sm:text-2xl font-bold text-gray-800">All Departments</h2>
+                                <p class="text-xs sm:text-sm text-gray-500 mt-1">${departments.length} total departments</p>
                             </div>
                             ${isAdmin() ? `
                                 <button onclick="openAddDepartmentModal()"
-                                        class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 
+                                        class="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 
                                                text-white text-sm font-medium px-4 py-2.5 rounded-xl 
-                                               transition-colors">
-                                    <span>+</span> Add Department
+                                               w-full sm:w-auto transition-colors flex-shrink-0">
+                                    <span>+</span> <span>Add Department</span>
                                 </button>` : ''}
                         </div>
 
                         <!-- Search -->
-                        <div class="mb-4">
+                        <div class="mb-4 flex flex-col sm:flex-row gap-2">
                             <input type="text" id="department-search"
                                    placeholder="Search by department name or description..."
                                    oninput="filterDepartments(this.value)"
-                                   class="w-full max-w-sm px-4 py-2.5 border border-gray-300 rounded-xl 
-                                          text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                   class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-xl 
+                                          text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
                         </div>
 
                         <!-- Table -->
-                        <div id="department-table-container" class="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
+                        <div id="department-table-container" class="bg-white rounded-2xl border border-gray-200 shadow-sm p-3 sm:p-4">
                             ${renderDataTable({
                                 columns: [
                                     { key: 'name',          label: 'Department Name' },

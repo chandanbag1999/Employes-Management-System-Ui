@@ -1,14 +1,14 @@
 function renderRegisterPage() {
     document.getElementById('app').innerHTML = `
-        <div class="min-h-screen flex animate-fade-in">
+        <div class="min-h-screen flex flex-col lg:flex-row animate-fade-in">
 
             <!-- LEFT SIDE — Branding (hidden on mobile) -->
-            <div class="hidden lg:flex w-1/2 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 
-                        flex-col items-center justify-center p-12 text-white">
+            <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 
+                        flex-col items-center justify-center p-8 sm:p-12 text-white">
                 <div class="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center 
                             text-3xl font-bold mb-6">E</div>
-                <h1 class="text-4xl font-bold mb-3">Join EMS Portal</h1>
-                <p class="text-slate-400 text-center text-lg max-w-sm">
+                <h1 class="text-3xl sm:text-4xl font-bold mb-3 text-center">Join EMS Portal</h1>
+                <p class="text-slate-400 text-center text-base sm:text-lg max-w-sm">
                     Create an account to manage your workforce efficiently.
                 </p>
                 <div class="mt-12 grid grid-cols-2 gap-4 w-full max-w-xs text-sm text-slate-400">
@@ -24,12 +24,12 @@ function renderRegisterPage() {
             </div>
 
             <!-- RIGHT SIDE — Register Form -->
-            <div class="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50">
+            <div class="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-6 md:p-8 bg-gray-50 min-h-screen lg:min-h-auto">
                 <div class="w-full max-w-md">
                     
                     <div class="mb-8">
-                        <h2 class="text-2xl font-bold text-gray-800">Create an Account</h2>
-                        <p class="text-gray-500 mt-1">Sign up to get started</p>
+                        <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">Create an Account</h2>
+                        <p class="text-gray-500 mt-2 text-sm sm:text-base">Sign up to get started</p>
                     </div>
 
                     <!-- Error message box -->
@@ -38,11 +38,11 @@ function renderRegisterPage() {
                                 px-4 py-3 rounded-lg text-sm mb-4">
                     </div>
 
-                    <form id="register-form" class="space-y-4">
+                    <form id="register-form" class="space-y-4 sm:space-y-5">
 
                         <!-- Full Name -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Full Name</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
                             <input type="text" name="userName" required minlength="3"
                                    placeholder="Your full name"
                                    class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm
@@ -52,7 +52,7 @@ function renderRegisterPage() {
 
                         <!-- Email -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Email Address</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
                             <input type="email" name="email" required
                                    placeholder="you@company.com"
                                    class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm
@@ -62,7 +62,7 @@ function renderRegisterPage() {
 
                         <!-- Password -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
                             <input type="password" name="password" required minlength="8"
                                    placeholder="Min. 8 characters"
                                    class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm
@@ -73,7 +73,7 @@ function renderRegisterPage() {
                         <!-- Submit Button -->
                         <button type="submit" id="register-btn"
                                 class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold 
-                                       py-3 px-4 rounded-xl transition-colors duration-200 mt-2">
+                                       py-3 px-4 rounded-xl transition-colors duration-200 mt-6 h-11">
                             Sign Up
                         </button>
                     </form>

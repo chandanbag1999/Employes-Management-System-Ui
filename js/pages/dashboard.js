@@ -22,25 +22,25 @@ async function renderDashboardPage() {
             <div class="flex min-h-screen bg-gray-50">
                 ${renderSidebar('dashboard')}
 
-                <div class="flex-1 ml-64">
+                <div class="flex-1 lg:ml-64">
                     ${renderTopbar('Dashboard')}
                     
-                    <main class="pt-20 px-6 pb-6 animate-fade-in">
+                    <main class="pt-20 px-3 sm:px-4 md:px-6 pb-6 animate-fade-in">
 
-                        <!-- Stats Cards Row -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+                        <!-- Stats Cards Row - Responsive Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5 mb-6">
                             ${renderStatsCard({ title: 'Total Employees', value: totalEmployees, icon: '👥', colorClass: 'bg-indigo-100' })}
                             ${renderStatsCard({ title: 'Active Employees', value: activeEmployees, icon: '✅', colorClass: 'bg-green-100' })}
                             ${renderStatsCard({ title: 'Departments', value: totalDepartments, icon: '🏢', colorClass: 'bg-orange-100' })}
                         </div>
 
                         <!-- Recent Hires Table -->
-                        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm">
-                            <div class="px-6 py-4 border-b border-gray-100">
-                                <h2 class="font-semibold text-gray-800">Recent Hires</h2>
-                                <p class="text-sm text-gray-500">Last 5 employees added</p>
+                        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                            <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100">
+                                <h2 class="font-semibold text-base sm:text-lg text-gray-800">Recent Hires</h2>
+                                <p class="text-xs sm:text-sm text-gray-500 mt-0.5">Last 5 employees added</p>
                             </div>
-                            <div class="p-4">
+                            <div class="p-3 sm:p-4">
                                 ${renderDataTable({
                                     columns: [
                                         { key: 'firstName', label: 'First Name' },

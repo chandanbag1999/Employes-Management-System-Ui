@@ -7,6 +7,11 @@ const routes = {
 };
 
 function handleRouteChange() {
+    // Always close mobile drawer on route change
+    if (typeof closeSidebar === 'function') {
+        closeSidebar();
+    }
+
     const hash = window.location.hash || '#/login';
 
     // AUTH GUARD 1: Not logged in + trying to access a protected page
@@ -36,4 +41,5 @@ window.addEventListener('hashchange', handleRouteChange);
 
 // When page first loads (user opens index.html fresh)
 window.addEventListener('DOMContentLoaded', handleRouteChange);
+
 
