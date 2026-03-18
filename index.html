@@ -1,66 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#6366f1">
-
-    <title>EMS — Employee Management System</title>
-
-    <!-- Tailwind CSS v3 (CDN — no build step needed) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Google Fonts: Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <!-- custom animations and overrides -->
-    <link rel="stylesheet" href="css/style.css">
-    <!-- Favicon -->
-    <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="assets/icons/favicon.svg">
-    <meta name="msapplication-TileColor" content="#6366f1">
-</head>
-<body class="bg-gray-50 text-gray-800 overflow-x-hidden" style="background-color: #f9fafb; color: #1f2937; opacity: 1;">
-
-    <!-- ALL page content renders here -->
-    <div id="app" style="opacity: 1;"></div>
-
-    <!-- Toast notifications -->
-    <div id="toast-container" 
-         class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm">
-    </div>
-
-    
-    <!-- Config FIRST — All are depend it -->
-    <script src="js/config.js"></script>
-
-    <!-- Utils — After config using TOAST_DURATION -->
-    <script src="js/utils.js"></script>
-
-    <!-- API client — config.js ka API_BASE_URL use karta hai -->
-    <script src="js/api.js"></script>
-
-    <!-- Auth  -->
-    <script src="js/auth.js"></script>
-
-    <!-- Components -->
-    <script src="js/components/sidebar.js"></script>
-    <script src="js/components/topbar.js"></script>
-    <script src="js/components/statsCard.js"></script>
-    <script src="js/components/dataTable.js"></script>
-    <script src="js/components/modal.js"></script>
-
-    <!-- Pages -->
-    <script src="js/pages/login.js"></script>
-    <script src="js/pages/register.js"></script>
-    <script src="js/pages/dashboard.js"></script>
-    <script src="js/pages/employees.js"></script>
-    <script src="js/pages/departments.js"></script>
-
-    <!-- Router LAST -->
-    <script src="js/router.js"></script>
-
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>employeemanagementui-v1</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>
