@@ -22,4 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-generate_project_snapshot.js
+codebase_snapshot.txt
+universal_codebase_snapshot.cjs
+.env
