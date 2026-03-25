@@ -42,6 +42,7 @@ export interface UpdateEmployeeDto extends CreateEmployeeDto {
 export interface DepartmentResponseDto {
     id: number;
     name: string;
+    code?: string;
     description?: string;
     headId?: number;
     headName?: string;
@@ -145,6 +146,7 @@ export interface ReviewResponseDto {
 export interface CreateDepartmentDto {
     name: string;
     description?: string;
+    code?: string;
     headId?: number;
 }
 

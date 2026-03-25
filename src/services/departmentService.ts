@@ -6,9 +6,11 @@ export const departmentService = {
     // GET /api/v1/departments
     getAll: async (): Promise<DepartmentResponseDto[]> => {
         const response = await api.get<any>('/departments');
-        // Backend may return data directly or wrapped
-        const data = response.data.data || response.data;
-        return Array.isArray(data) ? data : [];
+        // Backend returns paginated: { data: { data: [...], totalCount, page, ... }, success, message }
+        // Extract the actual array from the nested data
+        const paginatedData = response.data.data;
+        const departments = paginatedData?.data || paginatedData || [];
+        return Array.isArray(departments) ? departments : [];
     },
 
     // GET /api/v1/departments/:id
@@ -19,8 +21,8 @@ export const departmentService = {
 
     // POST /api/v1/departments
     create: async (data: CreateDepartmentDto): Promise<DepartmentResponseDto> => {
-        const response = await api.post<ApiResponse<DepartmentResponseDto>>('/departments', data);
-        return response.data.data;
+        const response = await api.post<any>('/departments', data);
+        return response.data.data || response.data;
     },
 
     // PUT /api/v1/departments/:id

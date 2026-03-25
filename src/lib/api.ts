@@ -7,10 +7,10 @@ const api = axios.create({
     headers: {
         'Content-Type': 'application/json',
     },
-    timeout: 30000, // 30 seconds timeout
+    timeout: 30000,
 });
 
-// Request interceptor to add JWT token to every request 
+// Request interceptor to add JWT token
 api.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
         const token = localStorage.getItem('ems-token');
@@ -24,16 +24,17 @@ api.interceptors.request.use(
     }
 );
 
-// Response interceptor to handle errors globally
+// Response interceptor - only redirect on 401, don't crash on other errors
 api.interceptors.response.use(
     (response) => response,
     (error: AxiosError) => {
         if (error.response?.status === 401) {
-            // Token expired or unauthorized, clear token and redirect to login page
+            console.log('[API] 401 Unauthorized - clearing token');
             localStorage.removeItem('ems-auth');
             localStorage.removeItem('ems-token');
             window.location.href = '/login';
         }
+        // Don't redirect or crash on other errors - just reject
         return Promise.reject(error);
     }
 );
