@@ -56,8 +56,19 @@ export const employeeService = {
 
     // POST /api/v1/employees
     create: async (data: CreateEmployeeDto): Promise<EmployeeResponseDto> => {
-        const response = await api.post<any>('/employees', data);
-        return response.data.data || response.data;
+        console.log('[EmployeeService] Creating employee with data:', JSON.stringify(data, null, 2));
+        
+        try {
+            const response = await api.post<any>('/employees', data);
+            console.log('[EmployeeService] Create success response:', response.data);
+            return response.data.data || response.data;
+        } catch (error: any) {
+            console.error('[EmployeeService] Create error status:', error.response?.status);
+            console.error('[EmployeeService] Create error data FULL:', JSON.stringify(error.response?.data, null, 2));
+            console.error('[EmployeeService] Create error message:', error.response?.data?.message || error.message);
+            console.error('[EmployeeService] Create error ERRORS:', error.response?.data?.errors);
+            throw error;
+        }
     },
 
     // PUT /api/v1/employees/:id

@@ -22,12 +22,13 @@ export interface EmployeeResponseDto {
     createdAt: string;
 }
 
+// Employee DTOs - MATCHES BACKEND (Gender is number: Male=1, Female=2, Other=3)
 export interface CreateEmployeeDto {
     firstName: string;
     lastName: string;
     email: string;
     phone: string;
-    gender: 'Male' | 'Female' | 'Other';
+    gender: number;  // 1=Male, 2=Female, 3=Other
     dateOfBirth: string;
     joiningDate: string;
     departmentId: number;
@@ -47,14 +48,16 @@ export interface DepartmentResponseDto {
     headId?: number;
     headName?: string;
     employeeCount?: number;
+    isActive?: boolean;
 }
 
 export interface DesignationResponseDto {
     id: number;
     title: string;
+    description?: string;
     departmentId: number;
     departmentName?: string;
-    level: number;
+    createdAt?: string;
 }
 
 export interface AttendanceResponseDto {
@@ -152,9 +155,9 @@ export interface CreateDepartmentDto {
 
 export interface UpdateDepartmentDto extends CreateDepartmentDto { }
 
-// Designation DTOs  
+// Designation DTOs - MATCHES BACKEND ENTITY
 export interface CreateDesignationDto {
     title: string;
     departmentId: number;
-    level: number;
+    description?: string;
 }

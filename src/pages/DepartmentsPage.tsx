@@ -8,9 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, Users, Pencil, Loader2, Trash2, Briefcase, Plus } from 'lucide-react';
+import { Building2, Users, Pencil, Loader2, Trash2, Briefcase, Plus, RotateCcw, Trash } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { departmentService, designationService } from '@/services';
-import type { DepartmentResponseDto, DesignationResponseDto, CreateDepartmentDto, UpdateDepartmentDto } from '@/types/backend';
+import type { DepartmentResponseDto, DesignationResponseDto, CreateDepartmentDto, UpdateDepartmentDto, CreateDesignationDto } from '@/types/backend';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -19,26 +20,36 @@ const DepartmentsPage = () => {
   const { toast } = useToast();
   const [departments, setDepartments] = useState<DepartmentResponseDto[]>([]);
   const [designations, setDesignations] = useState<DesignationResponseDto[]>([]);
+  const [deletedDesignations, setDeletedDesignations] = useState<DesignationResponseDto[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Department form state
   const [savingDept, setSavingDept] = useState(false);
   const [deptDialogOpen, setDeptDialogOpen] = useState(false);
   const [editingDept, setEditingDept] = useState<DepartmentResponseDto | null>(null);
-  const [deptFormData, setDeptFormData] = useState({ name: '', description: '', code: '' });
+  const [deptFormData, setDeptFormData] = useState({ name: '', description: '', code: '', isActive: true });
 
   // Delete dialog state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingDept, setDeletingDept] = useState<DepartmentResponseDto | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  // Designation form state
+  // Designation form state - MATCHES BACKEND: Title, Description, DepartmentId
   const [savingDesig, setSavingDesig] = useState(false);
   const [desigDialogOpen, setDesigDialogOpen] = useState(false);
   const [editingDesig, setEditingDesig] = useState<DesignationResponseDto | null>(null);
-  const [desigFormData, setDesigFormData] = useState({ title: '', departmentId: '' as number | string, level: 1 });
+  const [desigFormData, setDesigFormData] = useState({ 
+    title: '', 
+    departmentId: '' as number | string, 
+    description: '' 
+  });
   const [deletingDesig, setDeletingDesig] = useState<DesignationResponseDto | null>(null);
   const [desigDeleteDialogOpen, setDesigDeleteDialogOpen] = useState(false);
+
+  // Restore and Purge state
+  const [restoringId, setRestoringId] = useState<number | null>(null);
+  const [purging, setPurging] = useState(false);
+  const [purgeDialogOpen, setPurgeDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -47,12 +58,14 @@ const DepartmentsPage = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [deptData, desigData] = await Promise.all([
+      const [deptData, desigData, deletedDesigData] = await Promise.all([
         departmentService.getAll(),
-        designationService.getAll()
+        designationService.getAll(),
+        designationService.getAllDeleted()
       ]);
       setDepartments(deptData || []);
       setDesignations(desigData || []);
+      setDeletedDesignations(deletedDesigData || []);
     } catch (err: any) {
       console.error('Error fetching data:', err);
       toast({ title: 'Error', description: 'Failed to load data', variant: 'destructive' });
@@ -68,13 +81,14 @@ const DepartmentsPage = () => {
       name: dept.name,
       description: dept.description || '',
       code: dept.code || '',
+      isActive: dept.isActive ?? true,
     });
     setDeptDialogOpen(true);
   };
 
   const openCreateDialog = () => {
     setEditingDept(null);
-    setDeptFormData({ name: '', description: '', code: '' });
+    setDeptFormData({ name: '', description: '', code: '', isActive: true });
     setDeptDialogOpen(true);
   };
 
@@ -96,7 +110,7 @@ const DepartmentsPage = () => {
       await departmentService.create(data);
       
       toast({ title: 'Success', description: 'Department created successfully' });
-      setDeptFormData({ name: '', description: '', code: '' });
+      setDeptFormData({ name: '', description: '', code: '', isActive: true });
       setDeptDialogOpen(false);
       setEditingDept(null);
       fetchData();
@@ -131,7 +145,7 @@ const DepartmentsPage = () => {
       await departmentService.update(editingDept.id, data);
       
       toast({ title: 'Success', description: 'Department updated successfully' });
-      setDeptFormData({ name: '', description: '', code: '' });
+      setDeptFormData({ name: '', description: '', code: '', isActive: true });
       setDeptDialogOpen(false);
       setEditingDept(null);
       fetchData();
@@ -169,10 +183,10 @@ const DepartmentsPage = () => {
     }
   };
 
-  // Designation handlers
+  // Designation handlers - MATCHES BACKEND
   const openCreateDesigDialog = () => {
     setEditingDesig(null);
-    setDesigFormData({ title: '', departmentId: '', level: 1 });
+    setDesigFormData({ title: '', departmentId: '', description: '' });
     setDesigDialogOpen(true);
   };
 
@@ -181,7 +195,7 @@ const DepartmentsPage = () => {
     setDesigFormData({
       title: desig.title,
       departmentId: desig.departmentId,
-      level: desig.level,
+      description: desig.description || '',
     });
     setDesigDialogOpen(true);
   };
@@ -200,16 +214,15 @@ const DepartmentsPage = () => {
 
     try {
       setSavingDesig(true);
-      const data = {
+      const data: CreateDesignationDto = {
         title: desigFormData.title,
-        departmentId: desigFormData.departmentId,
-        level: desigFormData.level,
+        departmentId: Number(desigFormData.departmentId),
       };
       
-      await designationService.create(data as any);
+      await designationService.create(data);
       
       toast({ title: 'Success', description: 'Designation created successfully' });
-      setDesigFormData({ title: '', departmentId: '', level: 1 });
+      setDesigFormData({ title: '', departmentId: '', description: '' });
       setDesigDialogOpen(false);
       setEditingDesig(null);
       fetchData();
@@ -236,10 +249,9 @@ const DepartmentsPage = () => {
 
     try {
       setSavingDesig(true);
-      const data = {
+      const data: CreateDesignationDto = {
         title: desigFormData.title,
         departmentId: Number(desigFormData.departmentId),
-        level: desigFormData.level,
       };
       
       await designationService.update(editingDesig.id, data);
@@ -279,6 +291,44 @@ const DepartmentsPage = () => {
     }
   };
 
+  // Restore and Purge handlers
+  const handleRestoreDesignation = async (id: number) => {
+    try {
+      setRestoringId(id);
+      await designationService.restore(id);
+      toast({ title: 'Success', description: 'Designation restored successfully' });
+      fetchData();
+    } catch (err: any) {
+      console.error('Error restoring designation:', err);
+      toast({ 
+        title: 'Error', 
+        description: err.response?.data?.message || 'Failed to restore designation', 
+        variant: 'destructive' 
+      });
+    } finally {
+      setRestoringId(null);
+    }
+  };
+
+  const handlePurgeOld = async () => {
+    try {
+      setPurging(true);
+      const count = await designationService.purge(12);
+      toast({ title: 'Success', description: `Purged ${count} old deleted designations` });
+      setPurgeDialogOpen(false);
+      fetchData();
+    } catch (err: any) {
+      console.error('Error purging designations:', err);
+      toast({ 
+        title: 'Error', 
+        description: err.response?.data?.message || 'Failed to purge designations', 
+        variant: 'destructive' 
+      });
+    } finally {
+      setPurging(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader title="Organization" description="Manage departments, designations and structure.">
@@ -297,6 +347,7 @@ const DepartmentsPage = () => {
         <TabsList className="bg-muted/50">
           <TabsTrigger value="departments">Departments</TabsTrigger>
           <TabsTrigger value="designations">Designations</TabsTrigger>
+          <TabsTrigger value="deleted">Deleted ({deletedDesignations.length})</TabsTrigger>
         </TabsList>
 
         {/* Departments Grid */}
@@ -419,15 +470,91 @@ const DepartmentsPage = () => {
                       </div>
                       
                       <div className="space-y-2">
+                        <h3 className="font-semibold text-lg text-foreground">{desig.title}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Department: <span className="text-foreground font-medium">{desig.departmentName || 'N/A'}</span>
+                        </p>
+                        {desig.description && (
+                          <p className="text-xs text-muted-foreground line-clamp-2">
+                            {desig.description}
+                          </p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        {/* Deleted Designations Tab */}
+        <TabsContent value="deleted" className="mt-4">
+          <div className="mb-4 flex justify-between items-center">
+            <p className="text-sm text-muted-foreground">
+              Deleted designations can be restored within 12 months.
+            </p>
+            <Button 
+              variant="destructive" 
+              size="sm"
+              onClick={() => setPurgeDialogOpen(true)}
+              disabled={deletedDesignations.length === 0}
+            >
+              <Trash className="w-4 h-4 mr-1" /> Purge Old (12+ months)
+            </Button>
+          </div>
+          
+          {loading ? (
+            <div className="flex items-center justify-center h-64">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : deletedDesignations.length === 0 ? (
+            <div className="text-center text-muted-foreground p-8">No deleted designations</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {deletedDesignations.map((desig, index) => (
+                <motion.div
+                  key={desig.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <Card className="glass-card border-border/50 bg-destructive/5 group hover:shadow-lg transition-all duration-300">
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center text-white shadow-lg">
+                          <Briefcase className="w-6 h-6" />
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 hover:bg-green-500/10"
+                          onClick={() => handleRestoreDesignation(desig.id)}
+                          disabled={restoringId === desig.id}
+                        >
+                          {restoringId === desig.id ? (
+                            <Loader2 className="w-4 h-4 text-green-600 animate-spin" />
+                          ) : (
+                            <RotateCcw className="w-4 h-4 text-green-600" />
+                          )}
+                        </Button>
+                      </div>
+                      
+                      <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-lg text-foreground">{desig.title}</h3>
-                          <span className="text-xs bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-full font-medium">
-                            L{desig.level}
+                          <h3 className="font-semibold text-lg text-foreground line-through opacity-70">{desig.title}</h3>
+                          <span className="text-xs bg-red-500/10 text-red-600 px-2 py-0.5 rounded-full font-medium">
+                            DELETED
                           </span>
                         </div>
                         <p className="text-sm text-muted-foreground">
                           Department: <span className="text-foreground font-medium">{desig.departmentName || 'N/A'}</span>
                         </p>
+                        {desig.createdAt && (
+                          <p className="text-xs text-muted-foreground">
+                            Deleted: {new Date(desig.createdAt).toLocaleDateString()}
+                          </p>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -473,7 +600,18 @@ const DepartmentsPage = () => {
                 onChange={(e) => setDeptFormData({ ...deptFormData, description: e.target.value })}
               />
             </div>
-            <Button 
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="dept-active">Active Status</Label>
+                <p className="text-sm text-muted-foreground">Set whether department is active</p>
+              </div>
+              <Switch
+                id="dept-active"
+                checked={deptFormData.isActive}
+                onCheckedChange={(checked) => setDeptFormData({ ...deptFormData, isActive: checked })}
+              />
+            </div>
+            <Button
               type="submit" 
               className="w-full gradient-primary border-0 text-white" 
               disabled={savingDept}
@@ -485,7 +623,7 @@ const DepartmentsPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Designation Create/Edit Dialog */}
+      {/* Designation Create/Edit Dialog - MATCHES BACKEND ENTITY */}
       <Dialog open={desigDialogOpen} onOpenChange={setDesigDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -519,20 +657,13 @@ const DepartmentsPage = () => {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="desig-level">Level</Label>
-              <Select 
-                value={String(desigFormData.level)} 
-                onValueChange={(val) => setDesigFormData({ ...desigFormData, level: parseInt(val) })}
-              >
-                <SelectTrigger id="desig-level">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {[1,2,3,4,5,6,7,8,9,10].map(level => (
-                    <SelectItem key={level} value={String(level)}>Level {level}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="desig-desc">Description</Label>
+              <Textarea 
+                id="desig-desc" 
+                placeholder="Brief description (optional)" 
+                value={desigFormData.description}
+                onChange={(e) => setDesigFormData({ ...desigFormData, description: e.target.value })}
+              />
             </div>
             <Button 
               type="submit" 
@@ -552,7 +683,7 @@ const DepartmentsPage = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete "{deletingDept?.name}". This action cannot be undone.
+              This will delete "{deletingDept?.name}". You can restore it later from the Deleted tab.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -571,13 +702,32 @@ const DepartmentsPage = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete "{deletingDesig?.title}". This action cannot be undone.
+              This will delete "{deletingDesig?.title}". You can restore it later from the Deleted tab.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteDesignation} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Purge Confirmation Dialog */}
+      <AlertDialog open={purgeDialogOpen} onOpenChange={setPurgeDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Purge Old Deleted Designations?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete all designations that have been in trash for more than 12 months. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handlePurgeOld} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {purging ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              {purging ? 'Purging...' : 'Purge Old'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
