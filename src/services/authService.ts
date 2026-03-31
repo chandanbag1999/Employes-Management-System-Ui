@@ -1,41 +1,54 @@
 import api from '@/lib/api';
-import type { ApiResponse } from '@/types/api';
-
-// Backend returns flat structure
-interface LoginResponse {
-    token: string;
-    userName: string;
-    email: string;
-    role: string;
-    expiresAt: string;
-}
+import type {
+    LoginRequest,
+    RegisterRequest,
+    AuthResponse,
+    UserProfile,
+    ApiResponse
+} from '@/types/backend';
 
 export const authService = {
+
     // POST /api/v1/auth/login
-    // Backend returns data directly, not wrapped in "data" property
-    login: async (email: string, password: string): Promise<LoginResponse> => {
-        const response = await api.post<LoginResponse>('/auth/login', {
-            email,
-            password,
-        });
-        return response.data;
+    login: async (credentials: LoginRequest): Promise<AuthResponse> => {
+        const response = await api.post<ApiResponse<AuthResponse>>('/auth/login', credentials);
+
+        // Backend ka ApiResponse<T> wrapper check karo
+        if (!response.data.success || !response.data.data) {
+            throw new Error(response.data.message || 'Login failed');
+        }
+
+        return response.data.data;
     },
 
     // POST /api/v1/auth/register
-    register: async (data: {
-        email: string;
-        password: string;
-        firstName: string;
-        lastName: string;
-        phone?: string;
-    }): Promise<LoginResponse> => {
-        const response = await api.post<ApiResponse<LoginResponse>>('/auth/register', data);
+    register: async (data: RegisterRequest): Promise<AuthResponse> => {
+        const response = await api.post<ApiResponse<AuthResponse>>('/auth/register', data);
+
+        if (!response.data.success || !response.data.data) {
+            throw new Error(response.data.message || 'Registration failed');
+        }
+
         return response.data.data;
     },
 
-    // GET /api/v1/users/me
-    getCurrentUser: async () => {
-        const response = await api.get<ApiResponse<any>>('/users/me');
+    // POST /api/v1/auth/logout
+    logout: async (): Promise<void> => {
+        const refreshToken = localStorage.getItem('ems-refresh-token');
+        if (!refreshToken) return; // Kuch nahi karna agar token hai hi nahi
+
+        await api.post('/auth/logout', { refreshToken });
+    },
+
+    // GET /api/v1/users/me — Koi bhi authenticated user apna profile dekh sakta hai
+    getMe: async (): Promise<UserProfile> => {
+        const response = await api.get<ApiResponse<UserProfile>>('/users/me');
+
+        if (!response.data.success || !response.data.data) {
+            throw new Error(response.data.message || 'Failed to fetch profile');
+        }
+
         return response.data.data;
     },
+
 };

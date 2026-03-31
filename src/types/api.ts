@@ -117,3 +117,4 @@ export interface RunPayrollRequest {
     year: number;
     employeeIds?: number[];
 }
+

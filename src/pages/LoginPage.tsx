@@ -1,126 +1,115 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Eye, EyeOff, Loader2, X } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { toast } from '@/hooks/use-toast';
-import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
+import { useNavigate } from 'react-router-dom'; // Better than window.location.href
 
-const LoginPage = () => {
-  const [email, setEmail] = useState('lucifer123@email.com');
-  const [password, setPassword] = useState('Password@123');
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { login } = useAuthStore();
+export default function LoginPage() {
+  const { login, register, error: authError, isLoading, clearError } = useAuthStore();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [showPassword, setShowPassword] = useState(false);
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+
+  // Clear errors when switching modes
+  useEffect(() => {
+    clearError();
+  }, [authMode, clearError]);
+
+  const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    const success = await login(email, password);
-    setLoading(false);
-    if (success) {
-      toast({ title: 'Welcome back!', description: 'Login successful.' });
-      navigate('/');
+
+    let success = false;
+
+    if (authMode === 'login') {
+      success = await login(email, password);
     } else {
-      toast({ title: 'Login failed', description: 'Invalid credentials.', variant: 'destructive' });
+      success = await register(fullName, email, password);
+    }
+
+    if (success) {
+      navigate('/'); // React Router navigation is faster than window.location.href
     }
   };
 
-  const demoAccounts = [
-    { label: 'SuperAdmin', email: 'admin@ems.com' },
-    { label: 'HR Admin', email: 'hr@ems.com' },
-    { label: 'Manager', email: 'manager@ems.com' },
-    { label: 'Employee', email: 'employee@ems.com' },
-  ];
-
   return (
-    <div className="min-h-screen flex dark bg-background">
-      {/* Left Panel */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-        <div className="absolute inset-0 gradient-primary opacity-90" />
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.05%22%3E%3Cpath%20d%3D%22M36%2034v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6%2034v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6%204V0H4v4H0v2h4v4h2V6h4V4H6z%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-30" />
-        <div className="relative z-10 flex flex-col justify-center px-16 text-white">
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}>
-            <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur flex items-center justify-center text-2xl font-bold mb-8">
-              E
-            </div>
-            <h1 className="text-4xl font-bold mb-4">Employee Management System</h1>
-            <p className="text-lg text-white/70 max-w-md">
-              Enterprise-grade HR platform for managing your workforce, payroll, attendance, and performance.
+    <div className="min-h-screen flex items-center justify-center bg-slate-200/50 p-4 sm:p-6 lg:p-8 font-sans">
+      <div className="w-full max-w-[1300px] h-[85vh] min-h-[700px] bg-gradient-to-bl from-slate-50 via-[#f8f9fa] to-[#fef2cd] rounded-[2.5rem] shadow-2xl overflow-hidden flex relative border border-white/60">
+
+        {/* Left Panel - Form */}
+        <div className="w-full lg:w-[45%] flex flex-col p-8 sm:p-12 relative z-10 overflow-y-auto hide-scrollbar">
+          <div className="mb-10 lg:mb-auto">
+            <button className="px-6 py-2 border border-slate-300 text-slate-600 rounded-full font-medium text-sm hover:bg-white/50 transition-colors">
+              EMS System
+            </button>
+          </div>
+
+          <div className="max-w-[380px] w-full mx-auto my-auto">
+            <h2 className="text-3xl sm:text-[2rem] font-light text-slate-900 mb-2 tracking-tight">
+              {authMode === 'login' ? 'Welcome back' : 'Create an account'}
+            </h2>
+            <p className="text-slate-500 text-sm mb-6 font-medium">
+              {authMode === 'login' ? 'Sign in to access your dashboard' : 'Sign up to manage your workflow'}
             </p>
-          </motion.div>
+
+            {authError && (
+              <div className="mb-4 p-3 bg-red-50 text-red-600 border border-red-200 rounded-xl text-xs font-medium">
+                {authError}
+              </div>
+            )}
+
+            <form onSubmit={handleAuthSubmit} className="space-y-5">
+              {authMode === 'register' && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-slate-400 ml-2">Full name</label>
+                  <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Amélie Laurent" required
+                    className="w-full px-6 py-4 bg-white/80 backdrop-blur-sm border-transparent rounded-full focus:bg-white focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 transition-all outline-none text-sm text-slate-700 shadow-sm" />
+                </div>
+              )}
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-slate-400 ml-2">Email</label>
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@company.com" required
+                  className="w-full px-6 py-4 bg-white/80 backdrop-blur-sm border-transparent rounded-full focus:bg-white focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 transition-all outline-none text-sm text-slate-700 shadow-sm" />
+              </div>
+              <div className="space-y-1.5 relative">
+                <label className="text-xs font-medium text-slate-400 ml-2">Password</label>
+                <div className="relative">
+                  <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••••••••••" required
+                    className="w-full pl-6 pr-12 py-4 bg-white/80 backdrop-blur-sm border-transparent rounded-full focus:bg-white focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 transition-all outline-none text-sm text-slate-700 shadow-sm tracking-widest" />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                    {showPassword ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <button type="submit" disabled={isLoading} className="w-full mt-4 py-4 px-4 bg-[#fbd34d] hover:bg-[#facc15] text-slate-900 rounded-full text-sm font-semibold shadow-md shadow-yellow-200 transition-all disabled:opacity-70 flex items-center justify-center gap-2">
+                {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                {authMode === 'login' ? 'Sign In' : 'Sign Up'}
+              </button>
+            </form>
+          </div>
+
+          <div className="mt-10 lg:mt-auto flex items-center justify-between text-[11px] sm:text-xs font-medium text-slate-500">
+            <p>
+              {authMode === 'login' ? "Don't have an account? " : "Have an account? "}
+              <button onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')} className="text-slate-900 underline underline-offset-2 hover:text-slate-600 transition-colors">
+                {authMode === 'login' ? 'Sign up' : 'Sign in'}
+              </button>
+            </p>
+          </div>
         </div>
-      </div>
 
-      {/* Right Panel */}
-      <div className="flex-1 flex items-center justify-center p-6">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="w-full max-w-md"
-        >
-          <div className="lg:hidden flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center text-white font-bold">E</div>
-            <span className="font-bold text-xl text-foreground">EMS</span>
+        {/* Right Panel - Image (Kept exactly same as yours) */}
+        <div className="hidden lg:block lg:w-[55%] p-4 pl-0">
+          <div className="w-full h-full rounded-[2rem] overflow-hidden relative group">
+            <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=2070&auto=format&fit=crop" alt="Office Team" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent"></div>
           </div>
-
-          <h2 className="text-2xl font-bold text-foreground mb-1">Sign in</h2>
-          <p className="text-muted-foreground text-sm mb-8">Enter your credentials to access the dashboard</p>
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10" placeholder="name@company.com" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 pr-10"
-                  placeholder="••••••••"
-                />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-            <Button type="submit" className="w-full gradient-primary border-0 h-11 text-white font-medium" disabled={loading}>
-              {loading ? 'Signing in...' : 'Sign in'}
-            </Button>
-          </form>
-
-          <div className="mt-8">
-            <p className="text-xs text-muted-foreground mb-3 uppercase font-semibold tracking-wider">Demo Accounts</p>
-            <div className="grid grid-cols-2 gap-2">
-              {demoAccounts.map((acc) => (
-                <button
-                  key={acc.email}
-                  onClick={() => setEmail(acc.email)}
-                  className="px-3 py-2 rounded-lg text-xs font-medium border border-border text-muted-foreground hover:bg-muted hover:text-foreground transition-colors text-left"
-                >
-                  {acc.label}
-                  <br />
-                  <span className="text-[10px] opacity-60">{acc.email}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
-};
-
-export default LoginPage;
+}
