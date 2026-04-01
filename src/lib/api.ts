@@ -10,14 +10,12 @@ const api = axios.create({
     timeout: 30000,
 });
 
-// Variables to handle multiple simultaneous requests when token expires
 let isRefreshing = false;
 let failedQueue: Array<{
     resolve: (value?: unknown) => void;
     reject: (reason?: any) => void;
 }> = [];
 
-// Helper to process the queue of failed requests
 const processQueue = (error: any, token: string | null = null) => {
     failedQueue.forEach(prom => {
         if (error) {
@@ -29,10 +27,64 @@ const processQueue = (error: any, token: string | null = null) => {
     failedQueue = [];
 };
 
-// Request interceptor - Add Access Token
+// ✅ ROOT FIX: Token ko multiple sources se dhundo
+const getAccessToken = (): string | null => {
+    // Source 1: Direct localStorage key (login ke waqt set hota hai)
+    const directToken = localStorage.getItem('ems-token');
+    if (directToken) return directToken;
+
+    // Source 2: Zustand persist store (ems-auth key mein)
+    try {
+        const authStateStr = localStorage.getItem('ems-auth');
+        if (authStateStr) {
+            const parsed = JSON.parse(authStateStr);
+            const token = parsed?.state?.token;
+            if (token) {
+                // ✅ Sync back to direct key taaki aage direct mile
+                localStorage.setItem('ems-token', token);
+                return token;
+            }
+        }
+    } catch {
+        // JSON parse fail — ignore
+    }
+
+    return null;
+};
+
+// ✅ App startup pe token sync karo immediately
+const syncTokensOnStartup = () => {
+    try {
+        const authStateStr = localStorage.getItem('ems-auth');
+        if (authStateStr) {
+            const parsed = JSON.parse(authStateStr);
+            const token = parsed?.state?.token;
+            const refreshToken = parsed?.state?.refreshToken;
+
+            if (token && !localStorage.getItem('ems-token')) {
+                localStorage.setItem('ems-token', token);
+            }
+            if (refreshToken && !localStorage.getItem('ems-refresh-token')) {
+                localStorage.setItem('ems-refresh-token', refreshToken);
+            }
+
+            // Axios default header bhi set karo
+            if (token) {
+                api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+            }
+        }
+    } catch {
+        // Ignore
+    }
+};
+
+// ✅ Module load hote hi sync karo
+syncTokensOnStartup();
+
+// Request interceptor
 api.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
-        const token = localStorage.getItem('ems-token');
+        const token = getAccessToken();
         if (token && config.headers) {
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -41,17 +93,15 @@ api.interceptors.request.use(
     (error: AxiosError) => Promise.reject(error)
 );
 
-// Response interceptor - Handle 401 and Silent Refresh
+// Response interceptor
 api.interceptors.response.use(
     (response) => response,
     async (error: AxiosError) => {
         const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-        // If error is 401 and we haven't already retried this request
         if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
 
             if (isRefreshing) {
-                // If a refresh is already happening, put this request in a queue to wait
                 return new Promise(function (resolve, reject) {
                     failedQueue.push({ resolve, reject });
                 })
@@ -66,38 +116,42 @@ api.interceptors.response.use(
             isRefreshing = true;
 
             try {
-                // Get refresh token (Assuming you store it in local storage)
                 const refreshToken = localStorage.getItem('ems-refresh-token');
                 if (!refreshToken) throw new Error('No refresh token available');
 
-                // Call backend refresh endpoint (Use axios directly to avoid interceptor loop)
-                const { data } = await axios.post(`${API_BASE_URL}/auth/refresh`, { refreshToken });
+                const { data } = await axios.post(
+                    `${API_BASE_URL}/auth/refresh`,
+                    { refreshToken }
+                );
                 const newAccessToken = data.data.accessToken;
                 const newRefreshToken = data.data.refreshToken;
 
-                // Update tokens in local storage
+                // ✅ Teeno jagah update karo
                 localStorage.setItem('ems-token', newAccessToken);
                 localStorage.setItem('ems-refresh-token', newRefreshToken);
 
-                // Update auth store state manually (if using Zustand persist, it's stored under 'ems-auth')
-                const authStateStr = localStorage.getItem('ems-auth');
-                if (authStateStr) {
-                    const authState = JSON.parse(authStateStr);
-                    authState.state.token = newAccessToken;
-                    authState.state.refreshToken = newRefreshToken;
-                    localStorage.setItem('ems-auth', JSON.stringify(authState));
+                try {
+                    const authStateStr = localStorage.getItem('ems-auth');
+                    if (authStateStr) {
+                        const authState = JSON.parse(authStateStr);
+                        if (authState?.state) {
+                            authState.state.token = newAccessToken;
+                            authState.state.refreshToken = newRefreshToken;
+                            localStorage.setItem('ems-auth', JSON.stringify(authState));
+                        }
+                    }
+                } catch {
+                    // Ignore parse error
                 }
 
-                // Attach new token and process waiting requests
                 api.defaults.headers.common['Authorization'] = 'Bearer ' + newAccessToken;
                 originalRequest.headers.Authorization = 'Bearer ' + newAccessToken;
 
                 processQueue(null, newAccessToken);
+                return api(originalRequest);
 
-                return api(originalRequest); // Retry the original failed request
             } catch (err) {
                 processQueue(err, null);
-                // Refresh token also failed/expired -> Force Logout
                 console.warn('[API] Refresh token expired. Logging out.');
                 localStorage.removeItem('ems-token');
                 localStorage.removeItem('ems-refresh-token');

@@ -17,45 +17,90 @@ export const navigationConfig: NavGroup[] = [
   {
     label: 'Overview',
     items: [
-      { title: 'Dashboard', path: '/', icon: 'LayoutDashboard', roles: ['SuperAdmin', 'HRAdmin', 'Manager', 'Employee'] },
+      {
+        title: 'Dashboard',
+        path: '/',
+        icon: 'LayoutDashboard',
+        roles: ['SuperAdmin', 'HRAdmin', 'Manager', 'Employee']
+      },
     ],
   },
   {
     label: 'People',
     items: [
-      { title: 'Employees', path: '/employees', icon: 'Users', roles: ['SuperAdmin', 'HRAdmin', 'Manager'] },
-      { title: 'Departments', path: '/departments', icon: 'Building2', roles: ['SuperAdmin', 'HRAdmin'] },
+      {
+        title: 'Employees',
+        path: '/employees',
+        icon: 'Users',
+        roles: ['SuperAdmin', 'HRAdmin', 'Manager']
+      },
+      {
+        title: 'Organization',      // ← Renamed from "Departments"
+        path: '/organization',      // ← Path updated
+        icon: 'Building2',
+        roles: ['SuperAdmin', 'HRAdmin']
+      },
     ],
   },
   {
     label: 'Time & Leave',
     items: [
-      { title: 'Attendance', path: '/attendance', icon: 'Clock', roles: ['SuperAdmin', 'HRAdmin', 'Manager', 'Employee'] },
-      { title: 'Leaves', path: '/leaves', icon: 'CalendarDays', roles: ['SuperAdmin', 'HRAdmin', 'Manager', 'Employee'] },
+      {
+        title: 'Attendance',
+        path: '/attendance',
+        icon: 'Clock',
+        roles: ['SuperAdmin', 'HRAdmin', 'Manager', 'Employee']
+      },
+      {
+        title: 'Leaves',
+        path: '/leaves',
+        icon: 'CalendarDays',
+        roles: ['SuperAdmin', 'HRAdmin', 'Manager', 'Employee']
+      },
     ],
   },
   {
     label: 'Compensation',
     items: [
-      { title: 'Payroll', path: '/payroll', icon: 'Wallet', roles: ['SuperAdmin', 'HRAdmin'] },
+      {
+        title: 'Payroll',
+        path: '/payroll',
+        icon: 'Wallet',
+        roles: ['SuperAdmin', 'HRAdmin']
+      },
     ],
   },
   {
     label: 'Growth',
     items: [
-      { title: 'Performance', path: '/performance', icon: 'TrendingUp', roles: ['SuperAdmin', 'HRAdmin', 'Manager', 'Employee'] },
+      {
+        title: 'Performance',
+        path: '/performance',
+        icon: 'TrendingUp',
+        roles: ['SuperAdmin', 'HRAdmin', 'Manager', 'Employee']
+      },
     ],
   },
   {
     label: 'Analytics',
     items: [
-      { title: 'Reports', path: '/reports', icon: 'BarChart3', roles: ['SuperAdmin', 'HRAdmin', 'Manager'] },
+      {
+        title: 'Reports',
+        path: '/reports',
+        icon: 'BarChart3',
+        roles: ['SuperAdmin', 'HRAdmin', 'Manager']
+      },
     ],
   },
   {
     label: 'Administration',
     items: [
-      { title: 'User Management', path: '/users', icon: 'Shield', roles: ['SuperAdmin'] },
+      {
+        title: 'User Management',
+        path: '/users',
+        icon: 'Shield',
+        roles: ['SuperAdmin']
+      },
     ],
   },
 ];

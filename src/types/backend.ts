@@ -49,11 +49,12 @@ export interface EmployeeResponseDto {
     lastName: string;
     email: string;
     phone: string;
-    gender: string;
+    gender: number | string;  // Backend sends number (1=Male, 2=Female, 3=Other)
     dateOfBirth: string;
     joiningDate: string;
     profilePhotoUrl?: string;
-    status: string;
+    status: string;           // "Active" | "Inactive" | "OnLeave"
+    statusValue?: number;     // Optional for future-proofing
     departmentId: number;
     departmentName: string;
     designationId?: number;
@@ -106,11 +107,14 @@ export interface AttendanceResponseDto {
     id: number;
     employeeId: number;
     employeeName: string;
+    employeeCode: string;
     date: string;
-    clockIn?: string;
-    clockOut?: string;
+    // Backend TimeSpan bhejta hai — string format "09:30:00"
+    clockIn?: string | null;
+    clockOut?: string | null;
     status: string;
-    totalHours?: number;
+    workingHours?: number | null;
+    remarks?: string | null;
 }
 
 export interface LeaveResponseDto {

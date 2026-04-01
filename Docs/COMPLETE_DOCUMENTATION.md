@@ -351,7 +351,7 @@ EmployeeManagementUI_V2/
 │  │    /leaves       → LeavesPage                                      │ │
 │  │    /payroll      → PayrollPage (SuperAdmin, HRAdmin)              │ │
 │  │    /performance  → PerformancePage                                 │ │
-│  │    /departments  → DepartmentsPage (SuperAdmin, HRAdmin)          │ │
+│  │    /organization  → OrganizationPage (SuperAdmin, HRAdmin)          │ │
 │  │    /reports      → ReportsPage (SuperAdmin, HRAdmin, Manager)    │ │
 │  │    /users        → UsersPage (SuperAdmin only)                    │ │
 │  │                                                                    │ │
@@ -498,7 +498,7 @@ const navigationConfig: NavGroup[] = [
     label: 'People',
     items: [
       { title: 'Employees', path: '/employees', icon: 'Users', roles: ['SuperAdmin', 'HRAdmin', 'Manager'] },
-      { title: 'Departments', path: '/departments', icon: 'Building2', roles: ['SuperAdmin', 'HRAdmin'] },
+      { title: 'Organization', path: '/organization', icon: 'Building2', roles: ['SuperAdmin', 'HRAdmin'] },
     ],
   },
   {
@@ -541,7 +541,7 @@ const navigationConfig: NavGroup[] = [
 |------|:-----------:|:--------:|:--------:|:--------:|
 | Dashboard | ✅ | ✅ | ✅ | ✅ |
 | Employees | ✅ | ✅ | ✅ | ❌ |
-| Departments | ✅ | ✅ | ❌ | ❌ |
+| Organization | ✅ | ✅ | ❌ | ❌ |
 | Attendance | ✅ | ✅ | ✅ | ✅ |
 | Leaves | ✅ | ✅ | ✅ | ✅ |
 | Payroll | ✅ | ✅ | ❌ | ❌ |
@@ -786,7 +786,7 @@ interface Review {
 ### Organization
 
 **Files**:
-- `src/pages/DepartmentsPage.tsx`
+- `src/pages/OrganizationPage.tsx`
 - `src/services/departmentService.ts`
 - `src/services/designationService.ts`
 
@@ -851,15 +851,74 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-// Response interceptor - Handle 401
+// Response interceptor - Handle 401 with Silent Refresh
 api.interceptors.response.use(
     (response) => response,
-    (error) => {
-        if (error.response?.status === 401) {
-            localStorage.removeItem('ems-auth');
-            localStorage.removeItem('ems-token');
-            window.location.href = '/login';
+    async (error) => {
+        const originalRequest = error.config;
+
+        // If error is 401 and we haven't already retried this request
+        if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+            
+            if (isRefreshing) {
+                // If a refresh is already happening, put this request in a queue to wait
+                return new Promise(function (resolve, reject) {
+                    failedQueue.push({ resolve, reject });
+                })
+                    .then(token => {
+                        originalRequest.headers.Authorization = 'Bearer ' + token;
+                        return api(originalRequest);
+                    })
+                    .catch(err => Promise.reject(err));
+            }
+
+            originalRequest._retry = true;
+            isRefreshing = true;
+
+            try {
+                // Get refresh token
+                const refreshToken = localStorage.getItem('ems-refresh-token');
+                if (!refreshToken) throw new Error('No refresh token available');
+
+                // Call backend refresh endpoint
+                const { data } = await axios.post(`${API_BASE_URL}/auth/refresh`, { refreshToken });
+                const newAccessToken = data.data.accessToken;
+                const newRefreshToken = data.data.refreshToken;
+
+                // Update tokens in local storage
+                localStorage.setItem('ems-token', newAccessToken);
+                localStorage.setItem('ems-refresh-token', newRefreshToken);
+
+                // Update auth store state
+                const authStateStr = localStorage.getItem('ems-auth');
+                if (authStateStr) {
+                    const authState = JSON.parse(authStateStr);
+                    authState.state.token = newAccessToken;
+                    authState.state.refreshToken = newRefreshToken;
+                    localStorage.setItem('ems-auth', JSON.stringify(authState));
+                }
+
+                // Attach new token and process waiting requests
+                api.defaults.headers.common['Authorization'] = 'Bearer ' + newAccessToken;
+                originalRequest.headers.Authorization = 'Bearer ' + newAccessToken;
+
+                processQueue(null, newAccessToken);
+
+                return api(originalRequest); // Retry the original failed request
+            } catch (err) {
+                processQueue(err, null);
+                // Refresh token also failed/expired -> Force Logout
+                console.warn('[API] Refresh token expired. Logging out.');
+                localStorage.removeItem('ems-token');
+                localStorage.removeItem('ems-refresh-token');
+                localStorage.removeItem('ems-auth');
+                window.location.href = '/login';
+                return Promise.reject(err);
+            } finally {
+                isRefreshing = false;
+            }
         }
+
         return Promise.reject(error);
     }
 );
@@ -872,6 +931,7 @@ api.interceptors.response.use(
 | **Auth** | POST | `/auth/login` | authService |
 | | POST | `/auth/register` | authService |
 | | POST | `/auth/logout` | authService |
+| | POST | `/auth/refresh` | authService |
 | **Users** | GET | `/users` | userService |
 | | GET | `/users/:id` | userService |
 | | GET | `/users/me` | authService, userService |
@@ -928,13 +988,13 @@ api.interceptors.response.use(
 interface AuthState {
   user: User | null;
   token: string | null;
+  refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<boolean>;
-  loginWithToken: (token: string, userData: {...}) => boolean;
-  logout: () => void;
-  switchRole: (role: Role) => void;
+  register: (userName: string, email: string, password: string) => Promise<boolean>;
+  logout: () => Promise<void>;
   clearError: () => void;
 }
 
@@ -1170,9 +1230,9 @@ export type StatusType =
         <PayrollPage />
       </AuthGuard>
     } />
-    <Route path="/departments" element={
+    <Route path="/organization" element={
       <AuthGuard allowedRoles={['SuperAdmin', 'HRAdmin']}>
-        <DepartmentsPage />
+        <OrganizationPage />
       </AuthGuard>
     } />
     <Route path="/reports" element={
@@ -1277,4 +1337,5 @@ For more detailed documentation on each module, see the individual files in the 
 
 ---
 
-**Last Updated**: 2026-03-31
+**Last Updated**: 2026-04-01
+ 

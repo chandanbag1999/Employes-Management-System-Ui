@@ -37,4 +37,15 @@ export const payrollService = {
         const response = await api.post<ApiResponse<any>>('/payroll/run', data);
         return response.data.data;
     },
+
+    // GET /api/v1/payroll/payslips/:employeeId
+    getAllPayslips: async (employeeId: number): Promise<any[]> => {
+        try {
+            const response = await api.get<any>(`/payroll/payslips/${employeeId}`);
+            return response.data?.data || [];
+        } catch (err) {
+            console.error('getAllPayslips error:', err);
+            return [];
+        }
+    },
 };

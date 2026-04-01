@@ -29,9 +29,14 @@ export const leaveService = {
     },
 
     // GET /api/v1/leave/balance/:employeeId
-    getBalance: async (employeeId: number): Promise<LeaveBalanceDto[]> => {
-        const response = await api.get<ApiResponse<LeaveBalanceDto[]>>(`/leave/balance/${employeeId}`);
-        return response.data.data;
+    getBalance: async (employeeId: number): Promise<any[]> => {
+        try {
+            const response = await api.get<any>(`/leave/balance/${employeeId}`);
+            return response.data?.data || [];
+        } catch (err) {
+            console.error('getBalance error:', err);
+            return [];
+        }
     },
 
     // POST /api/v1/leave
